@@ -8,7 +8,7 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
+      background: linear-gradient(135deg, #111827, #020617);
       color: white;
       height: 100vh;
       display: flex;
@@ -18,75 +18,71 @@
 
     .container {
       width: 420px;
-      padding: 30px;
+      padding: 32px;
       background: rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      border-radius: 22px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
       text-align: center;
     }
 
     h1 {
-      margin-bottom: 10px;
-      font-size: 28px;
-    }
-
-    .subtitle {
-      color: #cbd5e1;
-      font-size: 14px;
-      margin-bottom: 25px;
-    }
-
-    .base-name {
-      font-size: 18px;
-      color: #94a3b8;
-      margin-bottom: 15px;
+      margin: 0 0 28px;
+      font-size: 30px;
+      letter-spacing: -1px;
     }
 
     .result {
-      font-size: 48px;
-      font-weight: bold;
-      margin: 25px 0;
+      font-size: 56px;
+      font-weight: 800;
+      margin: 28px 0;
       color: #38bdf8;
-      min-height: 60px;
+      min-height: 70px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     button {
       border: none;
-      padding: 14px 24px;
+      padding: 14px 28px;
       font-size: 17px;
-      font-weight: bold;
-      border-radius: 12px;
+      font-weight: 700;
+      border-radius: 14px;
       background: #38bdf8;
-      color: #0f172a;
+      color: #020617;
       cursor: pointer;
-      transition: 0.2s;
+      transition: 0.18s ease;
     }
 
     button:hover {
       background: #0ea5e9;
-      transform: scale(1.05);
+      transform: translateY(-2px);
     }
 
-    .list {
-      margin-top: 25px;
-      padding: 15px;
-      background: rgba(15, 23, 42, 0.7);
-      border-radius: 12px;
-      text-align: left;
-      max-height: 160px;
+    .history-box {
+      margin-top: 28px;
+      padding: 16px;
+      background: rgba(2, 6, 23, 0.75);
+      border-radius: 14px;
+      text-align: center;
+      max-height: 170px;
       overflow-y: auto;
-      font-size: 16px;
     }
 
-    .list-title {
+    .history-title {
       color: #cbd5e1;
-      margin-bottom: 8px;
       font-size: 14px;
+      margin-bottom: 10px;
     }
 
     .name-item {
-      padding: 4px 0;
+      padding: 6px 0;
+      font-size: 18px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .name-item:last-child {
+      border-bottom: none;
     }
   </style>
 </head>
@@ -94,77 +90,30 @@
 <body>
   <div class="container">
     <h1>이름 랜덤 생성기</h1>
-    <div class="subtitle">기본 이름의 자음은 유지하고 모음만 랜덤으로 바꿉니다.</div>
-
-    <div class="base-name">기본 이름: 황준우</div>
 
     <div class="result" id="result">황준우</div>
 
     <button onclick="generateName()">랜덤 생성</button>
 
-    <div class="list">
-      <div class="list-title">생성 기록</div>
+    <div class="history-box">
+      <div class="history-title">생성 기록</div>
       <div id="history"></div>
     </div>
   </div>
 
   <script>
-    const baseName = "황준우";
+    const firstSyllables = ["황", "횡"];
+    const secondSyllables = ["준", "진", "잔", "쥰"];
+    const lastSyllable = "우";
 
-    // 한글 초성, 중성, 종성 배열
-    const CHO = [
-      "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
-      "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"
-    ];
-
-    const JUNG = [
-      "ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ",
-      "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"
-    ];
-
-    const JONG = [
-      "", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ",
-      "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ",
-      "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"
-    ];
-
-    // 한글 한 글자를 초성, 중성, 종성으로 분해
-    function decomposeHangul(char) {
-      const code = char.charCodeAt(0) - 0xAC00;
-
-      const choIndex = Math.floor(code / 588);
-      const jungIndex = Math.floor((code % 588) / 28);
-      const jongIndex = code % 28;
-
-      return {
-        cho: choIndex,
-        jung: jungIndex,
-        jong: jongIndex
-      };
+    function randomPick(array) {
+      return array[Math.floor(Math.random() * array.length)];
     }
 
-    // 초성, 중성, 종성을 다시 한글로 조합
-    function composeHangul(cho, jung, jong) {
-      return String.fromCharCode(0xAC00 + cho * 588 + jung * 28 + jong);
-    }
-
-    // 랜덤 정수 생성
-    function randomInt(max) {
-      return Math.floor(Math.random() * max);
-    }
-
-    // 이름 생성 함수
     function generateName() {
-      let newName = "";
-
-      for (let char of baseName) {
-        const parts = decomposeHangul(char);
-
-        // 초성과 종성은 유지하고 중성만 랜덤 변경
-        const randomJung = randomInt(JUNG.length);
-
-        newName += composeHangul(parts.cho, randomJung, parts.jong);
-      }
+      const first = randomPick(firstSyllables);
+      const second = randomPick(secondSyllables);
+      const newName = first + second + lastSyllable;
 
       document.getElementById("result").textContent = newName;
 
@@ -172,7 +121,6 @@
       const item = document.createElement("div");
       item.className = "name-item";
       item.textContent = newName;
-
       history.prepend(item);
     }
   </script>
